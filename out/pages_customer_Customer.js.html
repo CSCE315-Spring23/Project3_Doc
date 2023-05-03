@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: pages/customer/Customer.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: pages/customer/Customer.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { useEffect, useState, useContext } from "react";
+import { CashierHelper } from "../../hooks/CashierHelper";
+import "../../css/Customer.css";
+import { CurOrderContext } from "../../hooks/CurOrderContext";
+import CustomerHeader from "./CustomerHeader";
+
+import AdPopUp from "../../components/AdPopUp";
+import WeatherPop from "../../components/weatherPop";
+import CurOrderPopUp from "../../components/CurOrderPopUp";
+import { HOST } from "../../host";
+
+const apiKey = "60ea3e0d4ae18a97f73bdcd78fc41e8d";
+
+/**
+
+A functional component that represents a customer page in a restaurant.
+@returns {JSX.Element} The JSX representation of the customer component.
+*/
+const Customer = () => {
+    const [temp, setTemp] = useState("");
+    const { totalCost, setTotalCost, curItems, setCurItems } =
+        useContext(CurOrderContext);
+    const [menu, setMenu] = useState("");
+
+    const [stringID, setStringID] = useState("");
+    const { handleClick, handleComplete, handleSubtract, handleClickExtra } =
+        CashierHelper(curItems, menu, totalCost, setCurItems, setTotalCost);
+
+    const [showPopUp, setShowPopUp] = useState(false);
+
+    const [showAdPopUp, setAdPopUp] = useState(false);
+
+    const [showAd, setAd] = useState(true);
+
+    const [showWeatherPop, setWeatherPop] = useState(false);
+
+    /**
+Handles click event for popup button
+@param {Event} event - The event object
+*/
+    const handlePopUpClick = (event) => {
+        const bID = event.target.closest("button").id;
+        console.log(bID);
+        setStringID(bID);
+        handlePopUpState();
+    };
+
+    /**
+    Handles weather popup based on current temperature
+    */
+    const handleWeatherPopup = () => {
+        if (temp > 53) {
+            console.log("temper: ", temp);
+            handleWeatherPopupState();
+        } else {
+            handleComplete();
+        }
+    };
+
+    /**
+Sets the weather popup state to true.
+*/
+    const handleWeatherPopupState = () => {
+        setWeatherPop(true);
+    };
+
+    /**
+
+    Handles the popup when the user chooses not to watch an advertisement by setting the advertisement popup state to true and the advertisement state to false.
+    */
+    const handlePopupNoAd = () => {
+        setAdPopUp(true);
+        setAd(false);
+    };
+
+    /**
+
+Handles the popup state when the user clicks a button by setting the advertisement popup state to true and the advertisement state to true.
+*/
+    const handlePopUpState = () => {
+        setAdPopUp(true);
+        setAd(true);
+    };
+
+    /**
+
+Toggles the show popup state to show or hide the popup.
+*/
+    const handlePopUp = () => {
+        setShowPopUp(!showPopUp);
+    };
+
+    /**
+
+Fetches weather data from OpenWeatherMap API and sets the temperature state.
+Fetches the menu from the server and sets the menu state.
+@async
+@function useEffect
+@param {string} apiKey - API key for OpenWeatherMap API.
+@param {string} HOST - URL for the server to fetch menu from.
+@param {function} setTemp - State setter function for temperature.
+@param {function} setMenu - State setter function for menu.
+@returns {void}
+*/
+    useEffect(() => {
+        const weather = async () => {
+            console.log("apikey: ", apiKey);
+            await fetch(
+                `https://api.openweathermap.org/data/2.5/weather?lat=30.621&amp;lon=-96.34&amp;units=imperial&amp;appid=${apiKey}`
+            )
+                .then((res) => res.json())
+                .then((result) => {
+                    setTemp(result.main.temp);
+                });
+        };
+
+        
+        const getMenu = async () => {
+            const res = await fetch(`${HOST}/menu`);
+            const data = await res.json();
+
+            console.log(res);
+            const newObj = {};
+            for (const key in data) {
+                const { menu_item_id, menu_item_price, menu_item_name } =
+                    data[key];
+                newObj[menu_item_id] = [menu_item_price, menu_item_name];
+            }
+
+            setMenu(newObj);
+        };
+        getMenu();
+        weather();
+    }, []);
+
+    /**
+        Gets the price of a menu item given its ID.
+        @function getMenuPrice
+        @param {number} menuItemId - ID of the menu item to get the price for.
+        @param {object} menu - Object containing menu items and their prices.
+        @returns {number|null} The price of the menu item or null if it doesn't exist in the menu object.
+        */
+    const getMenuPrice = (menuItemId, menu) => {
+        if (menu.hasOwnProperty(menuItemId)) {
+            return menu[menuItemId][0];
+        }
+        return null;
+    };
+
+    useEffect(() => {
+        console.log(curItems);
+    }, [curItems]);
+
+    return (
+        &lt;>
+            &lt;CustomerHeader />
+            &lt;div className="c1">
+                &lt;br>&lt;/br>
+
+                &lt;h1>Entrees&lt;/h1>
+
+                &lt;div className="button-row-customer">
+                    &lt;div className="items-customer">
+                        &lt;img
+                            src="/resource/CFASandwich.png"
+                            alt="Chick-Fil-A Sandwich"
+                            className="item-image-customer"
+                        />
+                        &lt;h1 className="txt">Chick-Fil-A Sandwich&lt;/h1>
+                        &lt;span className="subtext-customer">
+                            ${getMenuPrice(1, menu)}
+                        &lt;/span>
+                        &lt;button
+                            className="add-button-customer"
+                            type="submit"
+                            name="completed"
+                            value=""
+                            onClick={handlePopUpClick}
+                            id="cs"
+                        >&lt;/button>
+                    &lt;/div>
+                    &lt;div className="items-customer">
+                        &lt;img
+                            src="/resource/DeluxeSandwich.png"
+                            alt="Chick-Fil-A Nuggets"
+                            className="item-image-customer"
+                        />
+                        &lt;h1 className="txt">Chicken Sandwich Deluxe&lt;/h1>
+                        &lt;span className="subtext-customer">
+                            ${getMenuPrice(2, menu)}
+                        &lt;/span>
+                        &lt;button
+                            className="add-button-customer"
+                            type="submit"
+                            name="completed"
+                            value=""
+                            id="csd"
+                            onClick={handlePopUpClick}
+                        >&lt;/button>
+                    &lt;/div>
+                    &lt;div className="items-customer">
+                        &lt;img
+                            src="/resource/CFASpicySandwich.png"
+                            alt="Chick-Fil-A Nuggets"
+                            className="item-image-customer"
+                        />
+                        &lt;h1 className="txt">Spicy Sandwich&lt;/h1>
+                        &lt;span className="subtext-customer">
+                            ${getMenuPrice(3, menu)}
+                        &lt;/span>
+                        &lt;button
+                            className="add-button-customer"
+                            type="submit"
+                            name="completed"
+                            value=""
+                            id="css"
+                            onClick={handlePopUpClick}
+                        >&lt;/button>
+                    &lt;/div>
+                    &lt;div className="items-customer">
+                        &lt;img
+                            src="/resource/Spicy-Deluxe-Sandwich.png"
+                            alt="Chick-Fil-A Nuggets"
+                            className="item-image-customer"
+                        />
+                        &lt;h1 className="txt">Spicy Sandwich Deluxe&lt;/h1>
+                        &lt;span className="subtext-customer">
+                            ${getMenuPrice(4, menu)}
+                        &lt;/span>
+                        &lt;button
+                            className="add-button-customer"
+                            type="submit"
+                            name="completed"
+                            value=""
+                            id="scsd"
+                            onClick={handlePopUpClick}
+                        >&lt;/button>
+                    &lt;/div>
+                &lt;/div>
+
+                &lt;div className="button-row-customer">
+                    &lt;div className="items-customer">
+                        &lt;img
+                            src="/resource/nuggets_8ct.png"
+                            alt="Chick-Fil-A Nuggets"
+                            className="item-image-customer"
+                        />
+                        &lt;h1 className="txt">Chick-Fil-A Nuggets&lt;/h1>
+                        &lt;span className="subtext-customer">
+                            8ct. ${getMenuPrice(6, menu)} | 12ct. $
+                            {getMenuPrice(7, menu)}
+                        &lt;/span>
+                        &lt;div className="btn-holder-customer">
+                            &lt;button
+                                className="add-button-customer"
+                                type="submit"
+                                name="completed"
+                                value=""
+                                id="8n"
+                                onClick={handlePopUpClick}
+                            >&lt;/button>
+                            &lt;button
+                                className="add-button-customer"
+                                type="submit"
+                                name="completed"
+                                value=""
+                                id="12n"
+                                onClick={handlePopUpClick}
+                            >&lt;/button>
+                        &lt;/div>
+                    &lt;/div>
+                    &lt;div className="items-customer">
+                        &lt;img
+                            src="/resource/grilledNuggets_8ct.png"
+                            alt="Chick-Fil-A Nuggets"
+                            className="item-image-customer"
+                        />
+                        &lt;h1 className="txt">Chick-Fil-A Nuggets&lt;/h1>
+                        &lt;span className="subtext-customer">
+                            8ct. ${getMenuPrice(16, menu)} | 12ct. $
+                            {getMenuPrice(17, menu)}
+                        &lt;/span>
+                        &lt;div className="btn-holder-customer">
+                            &lt;button
+                                className="add-button-customer"
+                                type="submit"
+                                name="completed"
+                                value=""
+                                id="8ng"
+                                onClick={handlePopUpClick}
+                            >&lt;/button>
+                            &lt;button
+                                className="add-button-customer"
+                                type="submit"
+                                name="completed"
+                                value=""
+                                id="12ng"
+                                onClick={handlePopUpClick}
+                            >&lt;/button>
+                        &lt;/div>
+                    &lt;/div>
+                    &lt;div className="items-customer">
+                        &lt;img
+                            src="/resource/Grilled-Deluxe-Sandwich_1085.png"
+                            alt="Chick-Fil-A Nuggets"
+                            className="item-image-customer"
+                        />
+                        &lt;h1 className="txt">Sandwich Grilled&lt;/h1>
+                        &lt;span className="subtext-customer">
+                            ${getMenuPrice(18, menu)}
+                        &lt;/span>
+                        &lt;button
+                            className="add-button-customer"
+                            type="submit"
+                            name="completed"
+                            value=""
+                            id="csg"
+                            onClick={handlePopUpClick}
+                        >&lt;/button>
+                    &lt;/div>
+                    &lt;div className="items-customer">
+                        &lt;img
+                            src="/resource/grilledClub_colbyJack.png"
+                            alt="Chick-Fil-A Nuggets"
+                            className="item-image-customer"
+                        />
+                        &lt;h1 className="txt">Grilled Club&lt;/h1>
+                        &lt;span className="subtext-customer">
+                            ${getMenuPrice(34, menu)}
+                        &lt;/span>
+                        &lt;button
+                            className="add-button-customer"
+                            type="submit"
+                            name="completed"
+                            value=""
+                            id="csgc"
+                            onClick={handlePopUpClick}
+                        >&lt;/button>
+                    &lt;/div>
+                &lt;/div>
+
+                &lt;div className="button-row-customer">
+                    &lt;div className="items-customer">
+                        &lt;img
+                            src="/resource/wrap.png"
+                            alt="Grilled Chicken Cool Wrap"
+                            className="item-image-customer"
+                        />
+                        &lt;h1 className="txt">Grilled Chicken Cool Wrap&lt;/h1>
+                        &lt;span className="subtext-customer">
+                            ${getMenuPrice(37, menu)}
+                        &lt;/span>
+                        &lt;button
+                            className="add-button-customer"
+                            type="submit"
+                            name="completed"
+                            value=""
+                            id="ccwg"
+                            onClick={handlePopUpClick}
+                        >&lt;/button>
+                    &lt;/div>
+                    &lt;div className="items-customer">
+                        &lt;img
+                            src="/resource/marketSalad.png"
+                            alt="Market Salad"
+                            className="item-image-customer"
+                        />
+                        &lt;h1 className="txt">Market Salad&lt;/h1>
+                        &lt;span className="subtext-customer">
+                            ${getMenuPrice(19, menu)}
+                        &lt;/span>
+                        &lt;button
+                            className="add-button-customer"
+                            type="submit"
+                            name="completed"
+                            value=""
+                            id="sm"
+                            onClick={handleClick}
+                        >&lt;/button>
+                    &lt;/div>
+                    &lt;div className="items-customer">
+                        &lt;img
+                            src="/resource/sswSalad.png"
+                            alt="Spicy Southwest Salad"
+                            className="item-image-customer"
+                        />
+                        &lt;h1 className="txt">Spicy Southwest Salad&lt;/h1>
+                        &lt;span className="subtext-customer">
+                            ${getMenuPrice(39, menu)}
+                        &lt;/span>
+                        &lt;button
+                            className="add-button-customer"
+                            type="submit"
+                            name="completed"
+                            value=""
+                            id="sss"
+                            onClick={handleClick}
+                        >&lt;/button>
+                    &lt;/div>
+                    &lt;div className="items-customer">
+                        &lt;img
+                            src="/resource/cobbSalad.png"
+                            alt="Cobb Salad"
+                            className="item-image-customer"
+                        />
+                        &lt;h1 className="txt">Cobb Salad&lt;/h1>
+                        &lt;span className="subtext-customer">
+                            ${getMenuPrice(38, menu)}
+                        &lt;/span>
+                        &lt;button
+                            className="add-button-customer"
+                            type="submit"
+                            name="completed"
+                            value=""
+                            id="sc"
+                            onClick={handleClick}
+                        >&lt;/button>
+                    &lt;/div>
+                &lt;/div>
+
+                &lt;h1>Sides&lt;/h1>
+
+                &lt;div className="button-row-customer">
+                    &lt;div className="items-customer">
+                        &lt;img
+                            src="/resource/Fruit-Cup.png"
+                            alt="Fruit Cup"
+                            className="item-image-customer"
+                        />
+                        &lt;h1 className="txt">Fruit Cup&lt;/h1>
+                        &lt;span className="subtext-customer">
+                            ${getMenuPrice(54, menu)}
+                        &lt;/span>
+                        &lt;button
+                            className="add-button-customer"
+                            type="submit"
+                            name="completed"
+                            value=""
+                            id="fc"
+                            onClick={handleClick}
+                        >&lt;/button>
+                    &lt;/div>
+                    &lt;div className="items-customer">
+                        &lt;img
+                            src="/resource/sideSalad.png"
+                            alt="Side Salad"
+                            className="item-image-customer"
+                        />
+                        &lt;h1 className="txt">Side Salad&lt;/h1>
+                        &lt;span className="subtext-customer">
+                            ${getMenuPrice(55, menu)}
+                        &lt;/span>
+                        &lt;button
+                            className="add-button-customer"
+                            type="submit"
+                            name="completed"
+                            value=""
+                            id="side"
+                            onClick={handleClick}
+                        >&lt;/button>
+                    &lt;/div>
+                    &lt;div className="items-customer">
+                        &lt;img
+                            src="/resource/waffleFry.png"
+                            alt="Waffle Fries"
+                            className="item-image-customer"
+                        />
+                        &lt;h1 className="txt">Waffle Fries&lt;/h1>
+                        &lt;span className="subtext-customer">
+                            M: ${getMenuPrice(12, menu)} | L: $
+                            {getMenuPrice(52, menu)}
+                        &lt;/span>
+                        &lt;div className="btn-holder-customer">
+                            &lt;button
+                                className="add-button-customer"
+                                type="submit"
+                                name="completed"
+                                value=""
+                                id="wfm"
+                                onClick={handleClick}
+                            >&lt;/button>
+                            &lt;button
+                                className="add-button-customer"
+                                type="submit"
+                                name="completed"
+                                value=""
+                                id="wfl"
+                                onClick={handleClick}
+                            >&lt;/button>
+                        &lt;/div>
+                    &lt;/div>
+                    &lt;div>
+                        {showPopUp &amp;&amp; (
+                            &lt;CurOrderPopUp
+                                curItems={curItems}
+                                handleSubtract={handleSubtract}
+                                menu={menu}
+                            />
+                        )}
+                    &lt;/div>
+                    &lt;div className="items-customer">
+                        &lt;img
+                            src="/resource/chips.png"
+                            alt="Chips"
+                            className="item-image-customer"
+                        />
+                        &lt;h1 className="txt">Chips&lt;/h1>
+                        &lt;span className="subtext-customer">
+                            ${getMenuPrice(53, menu)}
+                        &lt;/span>
+                        &lt;button
+                            className="add-button-customer"
+                            type="submit"
+                            name="completed"
+                            value=""
+                            id="wc"
+                            onClick={handleClick}
+                        >&lt;/button>
+                    &lt;/div>
+                &lt;/div>
+            &lt;/div>
+
+            &lt;br>&lt;/br>&lt;br>&lt;/br>&lt;br>&lt;/br>&lt;br>&lt;/br>&lt;br>&lt;/br>&lt;br>&lt;/br>&lt;br>&lt;/br>
+
+            &lt;div className="edit-row-customer">
+                &lt;button className="edit-button-customer" onClick={handlePopUp}>
+                    Edit
+                &lt;/button>
+
+                &lt;button
+                    className="edit-button-customer bigger"
+                    onClick={handleWeatherPopup}
+                >
+                    &lt;div>Checkout:&lt;/div>
+                    &lt;div className="price-customer">
+                        ${Math.abs(totalCost).toFixed(2)}
+                    &lt;/div>
+                &lt;/button>
+            &lt;/div>
+            &lt;div>
+                {showWeatherPop &amp;&amp; (
+                    &lt;WeatherPop
+                        stringID={stringID}
+                        handleClick={handleClick}
+                        setWeatherPop={setWeatherPop}
+                        menu={menu}
+                        handleClickExtra={handleClickExtra}
+                        handleComplete={handleComplete}
+                    />
+                )}
+            &lt;/div>
+            &lt;div>
+                {showAdPopUp &amp;&amp; (
+                    &lt;AdPopUp
+                        stringID={stringID}
+                        handleClick={handleClick}
+                        setAdPopUp={setAdPopUp}
+                        menu={menu}
+                        handleClickExtra={handleClickExtra}
+                        showAd={showAd}
+                    />
+                )}
+            &lt;/div>
+        &lt;/>
+    );
+};
+export default Customer;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#App">App</a></li><li><a href="global.html#Cashier">Cashier</a></li><li><a href="global.html#CashierDrink">CashierDrink</a></li><li><a href="global.html#CashierHeader">CashierHeader</a></li><li><a href="global.html#CashierMeal">CashierMeal</a></li><li><a href="global.html#CashierSauce">CashierSauce</a></li><li><a href="global.html#CashierSeasonal">CashierSeasonal</a></li><li><a href="global.html#Customer">Customer</a></li><li><a href="global.html#CustomerDrink">CustomerDrink</a></li><li><a href="global.html#ExcessReport">ExcessReport</a></li><li><a href="global.html#HOST">HOST</a></li><li><a href="global.html#Home">Home</a></li><li><a href="global.html#Inventory">Inventory</a></li><li><a href="global.html#Login">Login</a></li><li><a href="global.html#Logout">Logout</a></li><li><a href="global.html#Manager">Manager</a></li><li><a href="global.html#MenuAdder">MenuAdder</a></li><li><a href="global.html#MenuItems">MenuItems</a></li><li><a href="global.html#Orders">Orders</a></li><li><a href="global.html#PrivateRouteCashier">PrivateRouteCashier</a></li><li><a href="global.html#PrivateRouteManager">PrivateRouteManager</a></li><li><a href="global.html#UserInputLogger">UserInputLogger</a></li><li><a href="global.html#getMenuEffect">getMenuEffect</a></li><li><a href="global.html#getMenuPrice">getMenuPrice</a></li><li><a href="global.html#handleComplete">handleComplete</a></li><li><a href="global.html#handleIdChange">handleIdChange</a></li><li><a href="global.html#handleInventory">handleInventory</a></li><li><a href="global.html#handleNameChange">handleNameChange</a></li><li><a href="global.html#handleNewOrder">handleNewOrder</a></li><li><a href="global.html#handlePriceChange">handlePriceChange</a></li><li><a href="global.html#handleSubmit">handleSubmit</a></li><li><a href="global.html#local">local</a></li><li><a href="global.html#root">root</a></li><li><a href="global.html#useEffect">useEffect</a></li><li><a href="global.html#useGoogleSignIn">useGoogleSignIn</a></li><li><a href="global.html#useLocalState">useLocalState</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Tue May 02 2023 22:48:22 GMT-0500 (Central Daylight Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

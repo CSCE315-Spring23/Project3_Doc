@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: pages/customer/CustomerDrink.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: pages/customer/CustomerDrink.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { useContext, useEffect, useState } from "react";
+import { CashierHelper } from "../../hooks/CashierHelper";
+import CashierHeader from "./CustomerHeader";
+import "../../css/Customer.css";
+import { CurOrderContext } from "../../hooks/CurOrderContext";
+import CurOrderPopUp from "../../components/CurOrderPopUp";
+import { HOST } from "../../host";
+
+/**
+
+Represents a component for ordering drinks as a customer.
+
+Uses state to keep track of the menu items and the total cost of the order.
+*/
+const CustomerDrink = () => {
+    /**
+
+    State to hold the menu items retrieved from the server.
+    @type {[Object, function]} An array containing the menu items and a function to update the state.
+    */
+    const [menu, setMenu] = useState("");
+    const { totalCost, setTotalCost, curItems, setCurItems } =
+        useContext(CurOrderContext);
+
+    const { handleClick, handleComplete, handleNewOrder, handleSubtract } =
+        CashierHelper(curItems, menu, totalCost, setCurItems, setTotalCost);
+
+        /**
+    State to determine whether to display the order confirmation popup.
+    @type {[boolean, function]} An array containing a boolean value for the state and a function to update it.
+    */
+    const [showPopUp, setShowPopUp] = useState(false);
+
+    const handlePopUp = () => {
+        setShowPopUp(!showPopUp);
+    };
+
+    /**
+     * Fetches menu data from the server and sets the menu state.
+     */
+    useEffect(() => {
+        /** 
+        @async function to fetch menu data from the server and update the state.
+        */
+        const getMenu = async () => {
+            const res = await fetch(`${HOST}/menu`);
+            const data = await res.json();
+
+            const newObj = {};
+            for (const key in data) {
+                const { menu_item_id, menu_item_price, menu_item_name } =
+                    data[key];
+                newObj[menu_item_id] = [menu_item_price, menu_item_name];
+            }
+
+            setMenu(newObj);
+        };
+        getMenu();
+    }, []);
+
+
+    /**
+    Function to get the price of a menu item by its ID.
+    @param {string} menuItemId - The ID of the menu item to get the price of.
+    @param {Object} menu - The object containing the menu items and their prices.
+    @returns {number | null} The price of the menu item with the given ID, or null if it is not found in the menu object.
+    */
+    const getMenuPrice = (menuItemId, menu) => {
+        if (menu.hasOwnProperty(menuItemId)) {
+            return menu[menuItemId][0];
+        }
+        return null;
+    };
+
+    useEffect(() => {
+        console.log(curItems);
+    }, [curItems]);
+    return (
+        &lt;div>
+            {/* &lt;h1>{JSON.stringify(menu, null, 2)}&lt;/h1> */}
+            &lt;CashierHeader />
+            &lt;div className="c1">
+                &lt;br>&lt;/br>
+                &lt;h1>Drinks&lt;/h1>
+
+                &lt;div className="button-row-customer">
+                    &lt;div className="items-customer">
+                        &lt;img
+                            src="/resource/Drinks_Coca-cola.png"
+                            alt="Soft Drink"
+                            className="item-image-customer"
+                        />
+                        &lt;h1 className="txt">Soft Drink&lt;/h1>
+                        &lt;span className="subtext-customer">
+                            M: ${getMenuPrice(9, menu)} | L: $
+                            {getMenuPrice(43, menu)}
+                        &lt;/span>
+                        &lt;div className="btn-holder-customer">
+                            &lt;button
+                                className="add-button-customer"
+                                type="submit"
+                                name="completed"
+                                value=""
+                                id="softm"
+                                onClick={handleClick}
+                            >&lt;/button>
+                            &lt;button
+                                className="add-button-customer"
+                                type="submit"
+                                name="completed"
+                                value=""
+                                id="softl"
+                                onClick={handleClick}
+                            >&lt;/button>
+                        &lt;/div>
+                    &lt;/div>
+                    &lt;div className="items-customer">
+                        &lt;img
+                            src="/resource/lemonade.png"
+                            alt="Chick-Fil-A Lemondade"
+                            className="item-image-customer"
+                        />
+                        &lt;h1 className="txt">Chick-Fil-A Lemondade&lt;/h1>
+                        &lt;span className="subtext-customer">
+                            M: ${getMenuPrice(15, menu)} | L: $
+                            {getMenuPrice(42, menu)}
+                        &lt;/span>
+                        &lt;div className="btn-holder-customer">
+                            &lt;button
+                                className="add-button-customer"
+                                type="submit"
+                                name="completed"
+                                value=""
+                                id="lem"
+                                onClick={handleClick}
+                            >&lt;/button>
+                            &lt;button
+                                className="add-button-customer"
+                                type="submit"
+                                name="completed"
+                                value=""
+                                id="leml"
+                                onClick={handleClick}
+                            >&lt;/button>
+                        &lt;/div>
+                    &lt;/div>
+                    &lt;div className="items-customer">
+                        &lt;img
+                            src="/resource/tea.png"
+                            alt="Freshly-Brewed Iced Tea"
+                            className="item-image-customer"
+                        />
+                        &lt;h1 className="txt">Freshly-Brewed Iced Tea&lt;/h1>
+                        &lt;span className="subtext-customer">
+                            M: ${getMenuPrice(40, menu)} | L: $
+                            {getMenuPrice(41, menu)}
+                        &lt;/span>
+                        &lt;div className="btn-holder-customer">
+                            &lt;button
+                                className="add-button-customer"
+                                type="submit"
+                                name="completed"
+                                value=""
+                                id="team"
+                                onClick={handleClick}
+                            >&lt;/button>
+                            &lt;button
+                                className="add-button-customer"
+                                type="submit"
+                                name="completed"
+                                value=""
+                                id="teal"
+                                onClick={handleClick}
+                            >&lt;/button>
+                        &lt;/div>
+                    &lt;/div>
+                    &lt;div className="items-customer">
+                        &lt;img
+                            src="/resource/sunjoy.png"
+                            alt="Chick-Fil-A Sunjoy"
+                            className="item-image-customer"
+                        />
+                        &lt;h1 className="txt">Chick-Fil-A Sunjoy&lt;/h1>
+                        &lt;span className="subtext-customer">
+                            M: ${getMenuPrice(44, menu)} | L: $
+                            {getMenuPrice(45, menu)}
+                        &lt;/span>
+                        &lt;div className="btn-holder-customer">
+                            &lt;button
+                                className="add-button-customer"
+                                type="submit"
+                                name="completed"
+                                value=""
+                                id="sunjoym"
+                                onClick={handleClick}
+                            >&lt;/button>
+                            &lt;button
+                                className="add-button-customer"
+                                type="submit"
+                                name="completed"
+                                value=""
+                                id="sunjoyl"
+                                onClick={handleClick}
+                            >&lt;/button>
+                        &lt;/div>
+                    &lt;/div>
+                &lt;/div>
+
+                &lt;div className="button-row-customer">
+                    &lt;div className="items-customer">
+                        &lt;img
+                            src="/resource/ChocolateMilkshake-1080.png"
+                            alt="Hand-Spun Chocolate Milkshake"
+                            className="item-image-customer"
+                        />
+                        &lt;h1 className="txt">Hand-Spun Chocolate Milkshake&lt;/h1>
+                        &lt;span className="subtext-customer">
+                            ${getMenuPrice(20, menu)}
+                        &lt;/span>
+                        &lt;button
+                            className="add-button-customer"
+                            type="submit"
+                            name="completed"
+                            value=""
+                            id="milkchoc"
+                            onClick={handleClick}
+                        >&lt;/button>
+                    &lt;/div>
+                    &lt;div className="items-customer">
+                        &lt;img
+                            src="/resource/VanillaMilkshake-1080.png"
+                            alt="Hand-Spun Vanilla Milkshake"
+                            className="item-image-customer"
+                        />
+                        &lt;h1 className="txt">Hand-Spun Vanilla Milkshake&lt;/h1>
+                        &lt;span className="subtext-customer">
+                            ${getMenuPrice(21, menu)}
+                        &lt;/span>
+                        &lt;button
+                            className="add-button-customer"
+                            type="submit"
+                            name="completed"
+                            value=""
+                            id="milkvan"
+                            onClick={handleClick}
+                        >&lt;/button>
+                    &lt;/div>
+                    &lt;div className="items-customer">
+                        &lt;img
+                            src="/resource/16oz_StrawberryMilkshake-1080.png"
+                            alt="Hand-Spun Strawberry Milkshake"
+                            className="item-image-customer"
+                        />
+                        &lt;h1 className="txt">Hand-Spun Strawberry Milkshake&lt;/h1>
+                        &lt;span className="subtext-customer">
+                            ${getMenuPrice(22, menu)}
+                        &lt;/span>
+                        &lt;button
+                            className="add-button-customer"
+                            type="submit"
+                            name="completed"
+                            value=""
+                            id="milkstraw"
+                            onClick={handleClick}
+                        >&lt;/button>
+                    &lt;/div>
+                    &lt;div className="items-customer">
+                        &lt;img
+                            src="/resource/16oz_C&amp;C_Milkshake-1080.png"
+                            alt="Hand-Spun Cookies &amp; Cream Milkshake"
+                            className="item-image-customer"
+                        />
+                        &lt;h1 className="txt">
+                            Hand-Spun Cookies &amp; Cream Milkshake
+                        &lt;/h1>
+                        &lt;span className="subtext-customer">
+                            ${getMenuPrice(23, menu)}
+                        &lt;/span>
+                        &lt;button
+                            className="add-button-customer"
+                            type="submit"
+                            name="completed"
+                            value=""
+                            id="milkcook"
+                            onClick={handleClick}
+                        >&lt;/button>
+                    &lt;/div>
+                &lt;/div>
+
+                &lt;div className="button-row-customer">
+                    &lt;div className="items-customer">
+                        &lt;img
+                            src="/resource/2022IcedCoffee.png"
+                            alt="Cold Brew Iced Coffee"
+                            className="item-image-customer"
+                        />
+                        &lt;h1 className="txt">Cold Brew Iced Coffee&lt;/h1>
+                        &lt;span className="subtext-customer">
+                            ${getMenuPrice(46, menu)}
+                        &lt;/span>
+                        &lt;button
+                            className="add-button-customer"
+                            type="submit"
+                            name="completed"
+                            value=""
+                            id="cofice"
+                            onClick={handleClick}
+                        >&lt;/button>
+                    &lt;/div>
+                    &lt;div className="items-customer">
+                        &lt;img
+                            src="/resource/Frosted-Lemonade.png"
+                            alt="Frosted Lemonade"
+                            className="item-image-customer"
+                        />
+                        &lt;h1 className="txt">Frosted Lemonade&lt;/h1>
+                        &lt;span className="subtext-customer">
+                            ${getMenuPrice(47, menu)}
+                        &lt;/span>
+                        &lt;button
+                            className="add-button-customer"
+                            type="submit"
+                            name="completed"
+                            value=""
+                            id="lemfrost"
+                            onClick={handleClick}
+                        >&lt;/button>
+                    &lt;/div>
+                    &lt;div className="items-customer">
+                        &lt;img
+                            src="/resource/Frosted-Coffee.png"
+                            alt="Frosted Coffee"
+                            className="item-image-customer"
+                        />
+                        &lt;h1 className="txt">Frosted Coffee&lt;/h1>
+                        &lt;span className="subtext-customer">
+                            ${getMenuPrice(48, menu)}
+                        &lt;/span>
+                        &lt;button
+                            className="add-button-customer"
+                            type="submit"
+                            name="completed"
+                            value=""
+                            id="cofrost"
+                            onClick={handleClick}
+                        >&lt;/button>
+                    &lt;/div>
+                &lt;/div>
+
+                &lt;br>&lt;/br>
+                &lt;h1>Treats&lt;/h1>
+                &lt;br>&lt;/br>
+
+                &lt;div className="button-row-customer">
+                    &lt;div className="items-customer">
+                        &lt;img
+                            src="/resource/CCCookie.png"
+                            alt="Chocolate Chunk Cookie"
+                            className="item-image-customer"
+                        />
+                        &lt;h1 className="txt">Chocolate Chunk Cookie&lt;/h1>
+                        &lt;span className="subtext-customer">
+                            ${getMenuPrice(24, menu)}
+                        &lt;/span>
+                        &lt;button
+                            className="add-button-customer"
+                            type="submit"
+                            name="completed"
+                            value=""
+                            id="cookie"
+                            onClick={handleClick}
+                        >&lt;/button>
+                    &lt;/div>
+                    &lt;div className="items-customer">
+                        &lt;img
+                            src="/resource/Ice-Dream.png"
+                            alt="Icedream Cone"
+                            className="item-image-customer"
+                        />
+                        &lt;h1 className="txt">Icedream Cone&lt;/h1>
+                        &lt;span className="subtext-customer">
+                            ${getMenuPrice(49, menu)}
+                        &lt;/span>
+                        &lt;button
+                            className="add-button-customer"
+                            type="submit"
+                            name="completed"
+                            value=""
+                            id="ic"
+                            onClick={handleClick}
+                        >&lt;/button>
+                    &lt;/div>
+
+                    &lt;div className="items-customer">
+                        &lt;img
+                            src="/resource/031717_FudgeChunkBrownie_PDP.png"
+                            alt="Chocolate Fudge Cookie"
+                            className="item-image-customer"
+                        />
+                        &lt;h1 className="txt">Chocolate Fudge Cookie&lt;/h1>
+                        &lt;span className="subtext-customer">
+                            ${getMenuPrice(50, menu)}
+                        &lt;/span>
+                        &lt;button
+                            className="add-button-customer"
+                            type="submit"
+                            name="completed"
+                            value=""
+                            id="brown"
+                            onClick={handleClick}
+                        >&lt;/button>
+                    &lt;/div>
+                &lt;/div>
+
+            &lt;/div>
+            &lt;br>&lt;/br>&lt;br>&lt;/br>&lt;br>&lt;/br>&lt;br>&lt;/br>&lt;br>&lt;/br>&lt;br>&lt;/br>&lt;br>&lt;/br>
+            &lt;div>
+                {showPopUp &amp;&amp; (
+                    &lt;CurOrderPopUp
+                        curItems={curItems}
+                        handleSubtract={handleSubtract}
+                        menu={menu}
+                    />
+                )}
+            &lt;/div>
+
+            &lt;div className="edit-row-customer">
+                &lt;button className="edit-button-customer" onClick={handlePopUp}>
+                    Edit
+                &lt;/button>
+
+                &lt;button
+                    className="edit-button-customer bigger"
+                    onClick={handleComplete}
+                >
+                    &lt;div>Checkout:&lt;/div>
+                    &lt;div className="price-customer">
+                        ${Math.abs(totalCost).toFixed(2)}
+                    &lt;/div>
+                &lt;/button>
+            &lt;/div>
+        &lt;/div>
+    );
+};
+
+export default CustomerDrink;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#App">App</a></li><li><a href="global.html#Cashier">Cashier</a></li><li><a href="global.html#CashierDrink">CashierDrink</a></li><li><a href="global.html#CashierHeader">CashierHeader</a></li><li><a href="global.html#CashierMeal">CashierMeal</a></li><li><a href="global.html#CashierSauce">CashierSauce</a></li><li><a href="global.html#CashierSeasonal">CashierSeasonal</a></li><li><a href="global.html#Customer">Customer</a></li><li><a href="global.html#CustomerDrink">CustomerDrink</a></li><li><a href="global.html#ExcessReport">ExcessReport</a></li><li><a href="global.html#HOST">HOST</a></li><li><a href="global.html#Home">Home</a></li><li><a href="global.html#Inventory">Inventory</a></li><li><a href="global.html#Login">Login</a></li><li><a href="global.html#Logout">Logout</a></li><li><a href="global.html#Manager">Manager</a></li><li><a href="global.html#MenuAdder">MenuAdder</a></li><li><a href="global.html#MenuItems">MenuItems</a></li><li><a href="global.html#Orders">Orders</a></li><li><a href="global.html#PrivateRouteCashier">PrivateRouteCashier</a></li><li><a href="global.html#PrivateRouteManager">PrivateRouteManager</a></li><li><a href="global.html#UserInputLogger">UserInputLogger</a></li><li><a href="global.html#getMenuEffect">getMenuEffect</a></li><li><a href="global.html#getMenuPrice">getMenuPrice</a></li><li><a href="global.html#handleComplete">handleComplete</a></li><li><a href="global.html#handleIdChange">handleIdChange</a></li><li><a href="global.html#handleInventory">handleInventory</a></li><li><a href="global.html#handleNameChange">handleNameChange</a></li><li><a href="global.html#handleNewOrder">handleNewOrder</a></li><li><a href="global.html#handlePriceChange">handlePriceChange</a></li><li><a href="global.html#handleSubmit">handleSubmit</a></li><li><a href="global.html#local">local</a></li><li><a href="global.html#root">root</a></li><li><a href="global.html#useEffect">useEffect</a></li><li><a href="global.html#useGoogleSignIn">useGoogleSignIn</a></li><li><a href="global.html#useLocalState">useLocalState</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Tue May 02 2023 22:48:22 GMT-0500 (Central Daylight Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
